@@ -1,3 +1,9 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png" />
+    <bitmap id="icon_footprints" filename="_icon_footprints.png"  />
+    <bitmap id="icon_clock" filename="_icon_clock.png"  />
+    <bitmap id="icon_heartrate" filename="_icon_heart.png"  />
+    <bitmap id="icon_distance" filename="_icon_distance.png"  />
+    <bitmap id="icon_speed" filename="_icon_speed.png"  />
+    <bitmap id="icon_calories" filename="_icon_calories.png"  />
 </drawables>

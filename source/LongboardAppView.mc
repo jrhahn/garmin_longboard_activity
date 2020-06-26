@@ -111,8 +111,6 @@ class LongboardAppDelegate extends WatchUi.BehaviorDelegate {
     function onKey(keyEvent) {    
     	var key = keyEvent.getKey();
     	
-    	System.println("Key pressed " + key + " / " + KEY_ENTER);
-    	
     	if(KEY_ENTER == key) {    		
 	 		if( Toybox has :ActivityRecording ) {
 	            if( ( session == null ) || ( session.isRecording() == false ) ) {
@@ -140,17 +138,26 @@ class LongboardAppDelegate extends WatchUi.BehaviorDelegate {
 
 class LongboardAppView extends WatchUi.View {
 
-
-    var posnInfo = null;
-    
+    var posnInfo = null;   
+   	var iconTime = null;
+   	var iconHR = null;
+   	var iconSteps = null;
+   	var iconDistance = null;
+   	var iconSpeed = null;
+	var iconCalories = null;
 
     function initialize() {
         View.initialize();
+        iconTime = WatchUi.loadResource(Rez.Drawables.icon_clock);
+        iconHR = WatchUi.loadResource(Rez.Drawables.icon_heartrate);
+        iconSteps = WatchUi.loadResource(Rez.Drawables.icon_footprints);
+        iconDistance = WatchUi.loadResource(Rez.Drawables.icon_distance);
+        iconSpeed = WatchUi.loadResource(Rez.Drawables.icon_speed);
+        iconCalories = WatchUi.loadResource(Rez.Drawables.icon_calories);
     }
 
     // Load your resources here
     function onLayout(dc) {
-//        setLayout(Rez.Layouts.MainLayout(dc));
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -159,69 +166,19 @@ class LongboardAppView extends WatchUi.View {
     function onShow() {
     }
     
-    function drawBar(dc, string, y, percent, color) {
-        var width = dc.getWidth() / 5 * 4;
-        var x = dc.getWidth() / 10;
-
-        if (percent > 1) {
-            percent = 1.0;
-        }
-
-        dc.setColor(color, color);
-        dc.fillRectangle(x, y, width * percent, 10);
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-        dc.drawRectangle(x, y, width, 10);
-        dc.setPenWidth(1);
-
-        var font = Graphics.FONT_SMALL;
-
-        dc.drawText(x, y - Graphics.getFontHeight(font) - 3, font, string, Graphics.TEXT_JUSTIFY_LEFT);
-    }
-
     // Update the view
     function onUpdate(dc) {
-        // Call the parent onUpdate function to redraw the layout
-		// View.onUpdate(dc);
-  		// Set background color
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, 0, dc.getWidth(), dc.getHeight());
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_WHITE);
-        dc.drawText(dc.getWidth()/2, 0, Graphics.FONT_XTINY, "M:"+System.getSystemStats().usedMemory, Graphics.TEXT_JUSTIFY_CENTER);
-        
-        var info = Activity.getActivityInfo();
-        
-
-        if( Toybox has :ActivityRecording ) {
-            // Draw the instructions
-            if( ( session == null ) || ( session.isRecording() == false ) ) {
-                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_WHITE);
-                dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_MEDIUM, "Press Menu to\nStart Recording", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-            }
-            else if( ( session != null ) && session.isRecording() ) {
-                var x = dc.getWidth() / 2;
-                var y = dc.getFontHeight(Graphics.FONT_XTINY);
-                dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_WHITE);
-                dc.drawText(x, y, Graphics.FONT_MEDIUM, "Recording...", Graphics.TEXT_JUSTIFY_CENTER);
-                y += dc.getFontHeight(Graphics.FONT_MEDIUM);
-                dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_WHITE);
-                dc.drawText(x, y, Graphics.FONT_MEDIUM, "Press Menu again\nto Stop and Save\nthe Recording", Graphics.TEXT_JUSTIFY_CENTER);
-            }
-        }
-        // tell the user this sample doesn't work
-        else {
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_WHITE);
-            dc.drawText(dc.getWidth() / 2, dc.getWidth() / 2, Graphics.FONT_MEDIUM, "This product doesn't\nhave FIT Support", Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        }
-        
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+      
+        var info = Activity.getActivityInfo();        
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         
         // Time
-        if (info has :elapsedTime) {
-            // var stepsPercent = info.steps.toFloat() / info.stepGoal;
-            dc.drawText(110, 10, Graphics.FONT_MEDIUM, "Time: " + info.elapsedTime, Graphics.TEXT_JUSTIFY_CENTER);
-            //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        if (info has :elapsedTime) {      
+        	dc.drawBitmap(100, 20, iconTime);
+            dc.drawText(123, 10, Graphics.FONT_MEDIUM, "" + info.elapsedTime, Graphics.TEXT_JUSTIFY_LEFT);
         }
         
         // Total Distance -> elapsedDistance
@@ -231,16 +188,15 @@ class LongboardAppView extends WatchUi.View {
         	if(dist == null) {
         		dist = 0;
         	}
-            // var stepsPercent = info.steps.toFloat() / info.stepGoal;
-            dc.drawText(10, 55, Graphics.FONT_MEDIUM, "Dist: " + dist, Graphics.TEXT_JUSTIFY_LEFT);
-            //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        	
+        	dc.drawBitmap(25, 65, iconDistance);
+            dc.drawText(45, 55, Graphics.FONT_MEDIUM, "" + dist, Graphics.TEXT_JUSTIFY_LEFT);
         }
-        
-        // Total Steps
-        // var stepsPercent = info.steps.toFloat() / info.stepGoal;
+
+		// Steps
+        dc.drawBitmap(140, 65, iconSteps);
         var stepCount = ActivityMonitor.getInfo().steps;
-        dc.drawText(110, 55, Graphics.FONT_MEDIUM, " Steps: " + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
-        //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        dc.drawText(163, 55, Graphics.FONT_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
         
         
         // Heart Rate -> currentHeartRate
@@ -251,20 +207,17 @@ class LongboardAppView extends WatchUi.View {
         		currentHeartRate = 0;
         	}
         	
-            // var stepsPercent = info.steps.toFloat() / info.stepGoal;
-            dc.drawText(10, 115, Graphics.FONT_LARGE, "HR: " + currentHeartRate, Graphics.TEXT_JUSTIFY_LEFT);
-            //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        	dc.drawBitmap(10, 110, iconHR);
+	        dc.drawText(25, 100, Graphics.FONT_NUMBER_HOT, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
-        // speed -> currentSpeed
-        if (info has :currentSpeed) {
-            // var stepsPercent = info.steps.toFloat() / info.stepGoal;
-            dc.drawText(110, 115, Graphics.FONT_LARGE, "Speed: " + info.currentSpeed, Graphics.TEXT_JUSTIFY_LEFT);
-            //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        // Speed -> currentSpeed
+        if (info has :currentSpeed) {          
+            dc.drawBitmap(120, 110, iconSpeed);
+            dc.drawText(140, 100, Graphics.FONT_NUMBER_HOT, info.currentSpeed.format("%0.1f"), Graphics.TEXT_JUSTIFY_LEFT); 
         }
-                
         
-        // calories -> calories
+        // Calories -> calories
         if ((info has :calories)) {
 	    	var calories = info.calories;
         	
@@ -272,10 +225,8 @@ class LongboardAppView extends WatchUi.View {
         		calories = 0;
         	}
         	
-        
-            // var stepsPercent = info.steps.toFloat() / info.stepGoal;
-            dc.drawText(110, 180, Graphics.FONT_MEDIUM, "Cal: " + calories, Graphics.TEXT_JUSTIFY_CENTER);
-            //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
+        	dc.drawBitmap(100, 200, iconCalories);
+            dc.drawText(125, 190, Graphics.FONT_MEDIUM, "" + calories, Graphics.TEXT_JUSTIFY_CENTER);
         }
      }
 
