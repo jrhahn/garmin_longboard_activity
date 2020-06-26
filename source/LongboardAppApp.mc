@@ -16,7 +16,7 @@ class LongboardAppApp extends Application.AppBase {
 
     // onStop() is called when your application is exiting
     function onStop(state) {
-        LongboardAppView.stopRecording();
+//        LongboardAppView.stopRecording();
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
     }
     
@@ -29,5 +29,4 @@ class LongboardAppApp extends Application.AppBase {
     	view = new LongboardAppView();
         return [ view, new LongboardAppDelegate() ];
     }
-
 }

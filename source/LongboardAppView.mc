@@ -10,37 +10,131 @@ var session = null;
 var stepsStart = 0;
 
 
+// This is the menu input delegate for the main menu of the application
+class MenuDelegate extends WatchUi.Menu2InputDelegate {
+
+    function initialize() {
+        Menu2InputDelegate.initialize();
+    }
+
+    function onSelect(item) {
+        if( item.getId().equals("resume") ) {
+        	System.println("RESUME");
+            if (session != null) {
+            	if (!session.isRecording()) {
+            		session.start();
+        		}
+            }	
+	        // close menu
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);            
+        } 
+        else if ( item.getId().equals("save") ) {
+	    	System.println("SAVE");
+	        // When the check menu item is selected, push a new menu that demonstrates
+	        // left and right checkbox menu items
+	        if (session != null) {
+	        	if (session.isRecording()) {
+	        		session.stop();
+	    		}
+	        	session.save();
+	        	session = null;
+	        }	
+	        
+	        // close menu
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+	        // close app
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        }
+        else if( item.getId().equals("discard") ) {
+        	System.println("DISCARD");         
+            var discardMenu = new WatchUi.Menu2({:title=>"Discard?"});
+            discardMenu.addItem(new WatchUi.MenuItem("Discard", null, "discard", null));
+            discardMenu.addItem(new WatchUi.MenuItem("Cancel", null, "cancel", null));
+			WatchUi.pushView(
+			    discardMenu,
+			    new DiscardConfirmationDelegate(),
+			    WatchUi.SLIDE_IMMEDIATE
+			);
+        } else {
+            WatchUi.requestUpdate();
+        }
+    }
+
+    function onBack() {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+}
+
+
+// This is the menu input delegate for the main menu of the application
+class DiscardConfirmationDelegate extends WatchUi.Menu2InputDelegate {
+
+    function initialize() {
+        Menu2InputDelegate.initialize();
+    }
+
+    function onSelect(item) {
+        if( item.getId().equals("discard") ) {
+            System.println("discard");
+            if (session != null) {
+            	if (session.isRecording()) {
+            		session.stop();
+        		}
+            	session.discard();
+            	session = null;
+        	}
+	        // close dialog
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+	        // close menu
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+	        // close app
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        } else {        
+	        // close dialog
+	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
+        } 
+    }
+
+    function onBack() {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+    }
+}
+
+
 class LongboardAppDelegate extends WatchUi.BehaviorDelegate {
 
     function initialize() {
         BehaviorDelegate.initialize();
     }
 
-    function onMenu() {
-//        WatchUi.pushView(new Rez.Menus.MainMenu(), new LongboardAppMenuDelegate(), WatchUi.SLIDE_UP);
-        if( Toybox has :ActivityRecording ) {
-            if( ( session == null ) || ( session.isRecording() == false ) ) {
-                session = ActivityRecording.createSession({:name=>"Longboard", :sport=>ActivityRecording.SPORT_FITNESS_EQUIPMENT});
-                session.start();
-                WatchUi.requestUpdate();
-                stepsStart = ActivityMonitor.getInfo().steps;
-            }
-            else if( ( session != null ) && session.isRecording() ) {
-                session.stop();
-                session.save();
-                session = null;
-                WatchUi.requestUpdate();
+    // Detect Menu button input
+    function onKey(keyEvent) {    
+    	var key = keyEvent.getKey();
+    	
+    	System.println("Key pressed " + key + " / " + KEY_ENTER);
+    	
+    	if(KEY_ENTER == key) {    		
+	 		if( Toybox has :ActivityRecording ) {
+	            if( ( session == null ) || ( session.isRecording() == false ) ) {
+	                session = ActivityRecording.createSession({:name=>"Longboard", :sport=>ActivityRecording.SPORT_FITNESS_EQUIPMENT});
+	                session.start();
+	                WatchUi.requestUpdate();
+	                stepsStart = ActivityMonitor.getInfo().steps;
+	            }
+	            else if( ( session != null ) && session.isRecording() ) {                       	
+	    	        // Generate a new Menu with a drawable Title
+					var menu = new WatchUi.Menu2({:title=>"Longboarding"});
+					
+					// Add menu items for demonstrating toggles, checkbox and icon menu items
+					menu.addItem(new WatchUi.MenuItem("Resume", null, "resume", null));
+					menu.addItem(new WatchUi.MenuItem("Save", null, "save", null));
+					menu.addItem(new WatchUi.MenuItem("Discard", null, "discard", null));
+					WatchUi.pushView(menu, new MenuDelegate(), WatchUi.SLIDE_UP );
+	            }
             }
         }
         return true;
     }
-     
-    // Detect Menu button input
-    function onKey(keyEvent) {
-        System.println(keyEvent.getKey()); // e.g. KEY_MENU = 7
-        return true;
-    }
-
 }
 
 
@@ -87,8 +181,8 @@ class LongboardAppView extends WatchUi.View {
     // Update the view
     function onUpdate(dc) {
         // Call the parent onUpdate function to redraw the layout
-//        View.onUpdate(dc);
-  // Set background color
+		// View.onUpdate(dc);
+  		// Set background color
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
@@ -145,7 +239,7 @@ class LongboardAppView extends WatchUi.View {
         // Total Steps
         // var stepsPercent = info.steps.toFloat() / info.stepGoal;
         var stepCount = ActivityMonitor.getInfo().steps;
-        dc.drawText(110, 55, Graphics.FONT_MEDIUM, "Steps: " + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(110, 55, Graphics.FONT_MEDIUM, " Steps: " + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
         //drawBar(dc, "Steps", dc.getHeight() / 4, stepsPercent, Graphics.COLOR_GREEN);
         
         
@@ -190,22 +284,11 @@ class LongboardAppView extends WatchUi.View {
     // memory.
     function onHide() {
     }
-    
-    //! Stop the recording if necessary
-    function stopRecording() {
-        if( Toybox has :ActivityRecording ) {
-            if( session != null && session.isRecording() ) {
-                session.stop();
-                session.save();
-                session = null;
-                WatchUi.requestUpdate();
-            }
-        }
-    }    
      
     function setPosition(info) {
         posnInfo = info;
         WatchUi.requestUpdate();
     }
-
 }
+ 
+ 
