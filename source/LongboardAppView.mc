@@ -19,7 +19,6 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item) {
         if( item.getId().equals("resume") ) {
-        	System.println("RESUME");
             if (session != null) {
             	if (!session.isRecording()) {
             		session.start();
@@ -29,7 +28,6 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
 	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);            
         } 
         else if ( item.getId().equals("save") ) {
-	    	System.println("SAVE");
 	        // When the check menu item is selected, push a new menu that demonstrates
 	        // left and right checkbox menu items
 	        if (session != null) {
@@ -45,11 +43,10 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
 	        // close app
 	        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         }
-        else if( item.getId().equals("discard") ) {
-        	System.println("DISCARD");         
+        else if( item.getId().equals("discard") ) {      
             var discardMenu = new WatchUi.Menu2({:title=>"Discard?"});
-            discardMenu.addItem(new WatchUi.MenuItem("Discard", null, "discard", null));
-            discardMenu.addItem(new WatchUi.MenuItem("Cancel", null, "cancel", null));
+            discardMenu.addItem(new WatchUi.MenuItem("No", null, "cancel", null));
+            discardMenu.addItem(new WatchUi.MenuItem("Yes", null, "discard", null));
 			WatchUi.pushView(
 			    discardMenu,
 			    new DiscardConfirmationDelegate(),
@@ -75,7 +72,6 @@ class DiscardConfirmationDelegate extends WatchUi.Menu2InputDelegate {
 
     function onSelect(item) {
         if( item.getId().equals("discard") ) {
-            System.println("discard");
             if (session != null) {
             	if (session.isRecording()) {
             		session.stop();
@@ -145,6 +141,8 @@ class LongboardAppView extends WatchUi.View {
    	var iconDistance = null;
    	var iconSpeed = null;
 	var iconCalories = null;
+	
+    var timer;
 
     function initialize() {
         View.initialize();
@@ -154,6 +152,8 @@ class LongboardAppView extends WatchUi.View {
         iconDistance = WatchUi.loadResource(Rez.Drawables.icon_distance);
         iconSpeed = WatchUi.loadResource(Rez.Drawables.icon_speed);
         iconCalories = WatchUi.loadResource(Rez.Drawables.icon_calories);
+        
+    	timer = new Timer.Timer();
     }
 
     // Load your resources here
@@ -164,6 +164,7 @@ class LongboardAppView extends WatchUi.View {
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
     function onShow() {
+        timer.start(method(:onTimer), 1000, true);
     }
     
     // Update the view
@@ -177,8 +178,17 @@ class LongboardAppView extends WatchUi.View {
         
         // Time
         if (info has :elapsedTime) {      
-        	dc.drawBitmap(100, 20, iconTime);
-            dc.drawText(123, 10, Graphics.FONT_MEDIUM, "" + info.elapsedTime, Graphics.TEXT_JUSTIFY_LEFT);
+        	dc.drawBitmap(55, 20, iconTime);
+        	
+        	var hh = info.elapsedTime / 3600000;
+        	var remainder = info.elapsedTime % 3600000;
+        	var mm = remainder / 60000;
+        	remainder = remainder % 60000;
+        	var ss = remainder / 1000;        	
+        	
+        	var timeString = hh.format("%02d") + ":" + mm.format("%02d") + ":" + ss.format("%02d"); 
+        	
+            dc.drawText(75, 10, Graphics.FONT_MEDIUM, timeString, Graphics.TEXT_JUSTIFY_LEFT);
         }
         
         // Total Distance -> elapsedDistance
@@ -189,14 +199,20 @@ class LongboardAppView extends WatchUi.View {
         		dist = 0;
         	}
         	
-        	dc.drawBitmap(25, 65, iconDistance);
-            dc.drawText(45, 55, Graphics.FONT_MEDIUM, "" + dist, Graphics.TEXT_JUSTIFY_LEFT);
+        	if(dist < 1000) {
+        		dist = dist.format("%0.0f"); // + "m";
+    		} else {
+    			dist = (dist / 1000).format("%0.0f"); //  + "km";
+			}
+        	
+        	dc.drawBitmap(7, 70, iconDistance);
+            dc.drawText(24, 60, Graphics.FONT_NUMBER_MEDIUM, dist, Graphics.TEXT_JUSTIFY_LEFT);
         }
 
 		// Steps
-        dc.drawBitmap(140, 65, iconSteps);
+        dc.drawBitmap(120, 70, iconSteps);
         var stepCount = ActivityMonitor.getInfo().steps;
-        dc.drawText(163, 55, Graphics.FONT_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
         
         
         // Heart Rate -> currentHeartRate
@@ -207,14 +223,15 @@ class LongboardAppView extends WatchUi.View {
         		currentHeartRate = 0;
         	}
         	
-        	dc.drawBitmap(10, 110, iconHR);
-	        dc.drawText(25, 100, Graphics.FONT_NUMBER_HOT, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT); 
+        	dc.drawBitmap(7, 135, iconHR);
+	        dc.drawText(24, 125, Graphics.FONT_NUMBER_MEDIUM, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
         // Speed -> currentSpeed
         if (info has :currentSpeed) {          
-            dc.drawBitmap(120, 110, iconSpeed);
-            dc.drawText(140, 100, Graphics.FONT_NUMBER_HOT, info.currentSpeed.format("%0.1f"), Graphics.TEXT_JUSTIFY_LEFT); 
+            dc.drawBitmap(120, 135, iconSpeed);
+            var speedString = (info.currentSpeed * 3.6).format("%0.1f");
+            dc.drawText(143, 125, Graphics.FONT_NUMBER_MEDIUM, speedString, Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
         // Calories -> calories
@@ -234,10 +251,12 @@ class LongboardAppView extends WatchUi.View {
     // state of this View here. This includes freeing resources from
     // memory.
     function onHide() {
+        timer.stop();
     }
      
-    function setPosition(info) {
-        posnInfo = info;
+    
+    function onTimer() {
+        //Kick the display update
         WatchUi.requestUpdate();
     }
 }
