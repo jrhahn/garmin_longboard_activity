@@ -146,6 +146,7 @@ class LongboardAppView extends WatchUi.View {
    	var iconDistance = null;
    	var iconSpeed = null;
 	var iconCalories = null;
+	var positionInfo = null;
 	
     var timer;
 
@@ -200,7 +201,7 @@ class LongboardAppView extends WatchUi.View {
         if (info has :elapsedDistance) {
         	var dist = info.elapsedDistance;
         	
-        	if(dist == null) {
+        	if(null == dist) {
         		dist = 0;
         	}
         	
@@ -273,6 +274,10 @@ class LongboardAppView extends WatchUi.View {
     
     function onTimer() {
         //Kick the display update
+        WatchUi.requestUpdate();
+    }
+    
+    function setPosition() {
         WatchUi.requestUpdate();
     }
 }
