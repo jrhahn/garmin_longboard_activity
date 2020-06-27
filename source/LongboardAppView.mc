@@ -114,6 +114,10 @@ class LongboardAppDelegate extends WatchUi.BehaviorDelegate {
 	                session.start();
 	                WatchUi.requestUpdate();
 	                stepsStart = ActivityMonitor.getInfo().steps;
+	                
+	                if(null == stepsStart) {
+	                	stepsStart = 0;
+                	}
 	            }
 	            else if( ( session != null ) && session.isRecording() ) {                       	
 	    	        // Generate a new Menu with a drawable Title
@@ -178,7 +182,7 @@ class LongboardAppView extends WatchUi.View {
         
         // Time
         if (info has :elapsedTime) {      
-        	dc.drawBitmap(55, 20, iconTime);
+        	dc.drawBitmap(55, 25, iconTime);
         	
         	var hh = info.elapsedTime / 3600000;
         	var remainder = info.elapsedTime % 3600000;
@@ -188,7 +192,7 @@ class LongboardAppView extends WatchUi.View {
         	
         	var timeString = hh.format("%02d") + ":" + mm.format("%02d") + ":" + ss.format("%02d"); 
         	
-            dc.drawText(75, 10, Graphics.FONT_MEDIUM, timeString, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(75, 15, Graphics.FONT_MEDIUM, timeString, Graphics.TEXT_JUSTIFY_LEFT);
         }
         
         // Total Distance -> elapsedDistance
@@ -202,17 +206,23 @@ class LongboardAppView extends WatchUi.View {
         	if(dist < 1000) {
         		dist = dist.format("%0.0f"); // + "m";
     		} else {
-    			dist = (dist / 1000).format("%0.0f"); //  + "km";
+    			dist = (dist / 1000).format("%0.1f"); //  + "km";
 			}
         	
-        	dc.drawBitmap(7, 70, iconDistance);
-            dc.drawText(24, 60, Graphics.FONT_NUMBER_MEDIUM, dist, Graphics.TEXT_JUSTIFY_LEFT);
+        	dc.drawBitmap(12, 70, iconDistance);
+            dc.drawText(29, 60, Graphics.FONT_NUMBER_MEDIUM, dist, Graphics.TEXT_JUSTIFY_LEFT);
         }
 
 		// Steps
         dc.drawBitmap(120, 70, iconSteps);
         var stepCount = ActivityMonitor.getInfo().steps;
+        
+        if( (null == stepCount) || (null == session) || (!session.isRecording()) ) {
+        	stepCount = 0;
+        }
+        
         dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
+        //dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "0", Graphics.TEXT_JUSTIFY_LEFT);
         
         
         // Heart Rate -> currentHeartRate
@@ -223,14 +233,22 @@ class LongboardAppView extends WatchUi.View {
         		currentHeartRate = 0;
         	}
         	
-        	dc.drawBitmap(7, 135, iconHR);
-	        dc.drawText(24, 125, Graphics.FONT_NUMBER_MEDIUM, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT); 
+        	dc.drawBitmap(12, 135, iconHR);
+	        //dc.drawText(24, 125, Graphics.FONT_NUMBER_MEDIUM, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT);
+	        dc.drawText(29, 125, Graphics.FONT_NUMBER_MEDIUM, "0", Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
         // Speed -> currentSpeed
         if (info has :currentSpeed) {          
             dc.drawBitmap(120, 135, iconSpeed);
-            var speedString = (info.currentSpeed * 3.6).format("%0.1f");
+            
+            var currentSpeed = info.currentSpeed;
+            
+            if(null == currentSpeed) {
+            	currentSpeed = 0;
+            }
+            
+            var speedString = (currentSpeed * 3.6).format("%0.1f");
             dc.drawText(143, 125, Graphics.FONT_NUMBER_MEDIUM, speedString, Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
@@ -260,5 +278,4 @@ class LongboardAppView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 }
- 
  
