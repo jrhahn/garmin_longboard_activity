@@ -6,6 +6,7 @@ using Toybox.Graphics;
 using Toybox.ActivityRecording;
 using Toybox.Activity;
 
+
 var session = null;
 var stepsStart = 0;
 
@@ -268,11 +269,14 @@ class LongboardAppView extends WatchUi.View {
     // memory.
     function onHide() {
         timer.stop();
-    }
-     
+    }     
     
     function onTimer() {
         //Kick the display update
+        WatchUi.requestUpdate();
+    }
+    
+    function setPosition(info) {
         WatchUi.requestUpdate();
     }
 }
