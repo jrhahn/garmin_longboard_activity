@@ -221,9 +221,7 @@ class LongboardAppView extends WatchUi.View {
         	stepCount = 0;
         }
         
-        dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);
-        //dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "0", Graphics.TEXT_JUSTIFY_LEFT);
-        
+        dc.drawText(143, 60, Graphics.FONT_NUMBER_MEDIUM, "" + (stepCount - stepsStart), Graphics.TEXT_JUSTIFY_LEFT);       
         
         // Heart Rate -> currentHeartRate
         if (info has :currentHeartRate) {
@@ -235,7 +233,7 @@ class LongboardAppView extends WatchUi.View {
         	
         	dc.drawBitmap(12, 135, iconHR);
 	        //dc.drawText(24, 125, Graphics.FONT_NUMBER_MEDIUM, currentHeartRate.format("%d"), Graphics.TEXT_JUSTIFY_LEFT);
-	        dc.drawText(29, 125, Graphics.FONT_NUMBER_MEDIUM, "0", Graphics.TEXT_JUSTIFY_LEFT); 
+	        dc.drawText(29, 125, Graphics.FONT_NUMBER_MEDIUM, currentHeartRate, Graphics.TEXT_JUSTIFY_LEFT); 
         }
         
         // Speed -> currentSpeed
