@@ -111,7 +111,7 @@ class LongboardAppDelegate extends WatchUi.BehaviorDelegate {
     	if(KEY_ENTER == key) {    		
 	 		if( Toybox has :ActivityRecording ) {
 	            if( ( session == null ) || ( session.isRecording() == false ) ) {
-	                session = ActivityRecording.createSession({:name=>"Longboard", :sport=>ActivityRecording.SPORT_FITNESS_EQUIPMENT});
+	                session = ActivityRecording.createSession({:name=>"Longboard", :sport=>ActivityRecording.SPORT_WALKING});
 	                session.start();
 	                WatchUi.requestUpdate();
 	                stepsStart = ActivityMonitor.getInfo().steps;
@@ -273,10 +273,6 @@ class LongboardAppView extends WatchUi.View {
     
     function onTimer() {
         //Kick the display update
-        WatchUi.requestUpdate();
-    }
-    
-    function setPosition(info) {
         WatchUi.requestUpdate();
     }
 }
